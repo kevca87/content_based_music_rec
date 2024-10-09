@@ -1,136 +1,69 @@
 from spotify_api import get_track_isrc
 from musixmatch_api import get_lyrics, get_track_metadata
 import json
+from tqdm import tqdm
+from time import sleep
 
 def read_json_file(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
     return data
 
-def get_playlists(file_path):
+# def get_playlists(file_path):
+#     data = read_json_file(file_path)
+#     return data['playlists']
+
+def get_tracks(file_path):
     data = read_json_file(file_path)
-    return data['playlists']
+    return data
 
-"""
-    shows deep stats for the MPD
+def save_json_file(file_path, data):
+    with open(file_path, 'w') as file:
+        json.dump(data, file)
+    
+def get_tracks_data(uris):
+    isrcs = []
+    unable_to_get_isrcs = []
+    tracks_metadata = []
+    tracks_lyrics = []
+    for uri in tqdm(uris):
+        isrc = get_track_isrc(uri)
+        try:
+            if isrc != None:
+                isrcs.append(isrc)
+                track_metadata = get_track_metadata(isrc)
+                if track_metadata != None and track_metadata['has_lyrics'] == 1:
+                    tracks_metadata.append(track_metadata)
+                    lyrics = get_lyrics(isrc)
+                    if lyrics != None:
+                        tracks_lyrics.append(lyrics)
+                    else:
+                        unable_to_get_isrcs.append(uri)
+            else:
+                unable_to_get_isrcs.append(uri)
+            sleep(1)
+        except Exception as e:
+            save_json_file('isrcs.json', isrcs)
+            save_json_file('unable_to_get_isrcs.json', unable_to_get_isrcs)
+            save_json_file('tracks_metadata.json', tracks_metadata)
+            save_json_file('tracks_lyrics.json', tracks_lyrics)
+    save_json_file('isrcs.json', isrcs)
+    save_json_file('unable_to_get_isrcs.json', unable_to_get_isrcs)
+    save_json_file('tracks_metadata.json', tracks_metadata)
+    save_json_file('tracks_lyrics.json', tracks_lyrics)
+    return isrcs
 
-    usage:
+# def get_lyrics_for_tracks(tracks):
+#     lyrics = []
+#     for track in tracks:
+#         isrc = track['isrc']
+#         lyrics.append(get_lyrics(isrc))
+#     return lyrics
 
-        python deeper_stats.py path-to-mpd-data/
-"""
-import sys
-import json
-import re
-import collections
-import os
-
-total_playlists = 0
-total_tracks = 0
-tracks = set()
-artists = set()
-albums = set()
-titles = set()
-ntitles = set()
-full_title_histogram = collections.Counter()
-title_histogram = collections.Counter()
-artist_histogram = collections.Counter()
-track_histogram = collections.Counter()
-
-quick = False
-max_files_for_quick_processing = 50
-
-
-def process_mpd(path):
-    count = 0
-    filenames = os.listdir(path)
-    for filename in sorted(filenames):
-        if filename.startswith("mpd.slice.") and filename.endswith(".json"):
-            fullpath = os.sep.join((path, filename))
-            f = open(fullpath)
-            js = f.read()
-            f.close()
-            mpd_slice = json.loads(js)
-            process_info(mpd_slice["info"])
-            for playlist in mpd_slice["playlists"]:
-                process_playlist(playlist)
-            count += 1
-
-            if quick and count > max_files_for_quick_processing:
-                break
-
-    show_summary()
-
-
-def show_summary():
-    print()
-    print("number of playlists", total_playlists)
-    print("number of tracks", total_tracks)
-    print("number of unique tracks", len(tracks))
-    print("number of unique albums", len(albums))
-    print("number of unique artists", len(artists))
-    print("number of unique titles", len(titles))
-    print("number of unique normalized titles", len(ntitles))
-    print("avg playlist length", float(total_tracks) / total_playlists)
-    print()
-    print("full playlist titles")
-    for title, count in full_title_histogram.most_common():
-        print("%7d %s" % (count, title))
-    print()
-
-    print("top playlist titles")
-    for title, count in title_histogram.most_common():
-        print("%7d %s" % (count, title))
-    print()
-
-    print("top tracks")
-    for track, count in track_histogram.most_common(10000):
-        print("%7d %s" % (count, track))
-
-    print()
-    print("top artists")
-    for artist, count in artist_histogram.most_common(10000):
-        print("%7d %s" % (count, artist))
-
-
-def normalize_name(name):
-    name = name.lower()
-    name = re.sub(r"[.,\/#!$%\^\*;:{}=\_`~()@]", " ", name)
-    name = re.sub(r"\s+", " ", name).strip()
-    return name
-
-
-def process_playlist(playlist):
-    global total_playlists, total_tracks
-
-    total_playlists += 1
-    # print playlist['playlist_id'], playlist['name']
-
-    titles.add(playlist["name"])
-    nname = normalize_name(playlist["name"])
-    ntitles.add(nname)
-    title_histogram[nname] += 1
-    full_title_histogram[playlist["name"].lower()] += 1
-
-    for track in playlist["tracks"]:
-        total_tracks += 1
-        albums.add(track["album_uri"])
-        tracks.add(track["track_uri"])
-        artists.add(track["artist_uri"])
-
-        full_name = track["track_name"] + " by " + track["artist_name"]
-        artist_histogram[track["artist_name"]] += 1
-        track_histogram[full_name] += 1
-
-
-def process_info(info):
-    for k, v in list(info.items()):
-        print("%-20s %s" % (k + ":", v))
-    print()
-
-
-if __name__ == "__main__":
-    quick = False
-    path = sys.argv[1]
-    if len(sys.argv) > 2 and sys.argv[2] == "--quick":
-        quick = True
-    process_mpd(path)
+if __name__ == '__main__':
+    part = 1
+    musixmatch_api_limit = 1000
+    range_start = (part - 1) * musixmatch_api_limit
+    range_end = part * musixmatch_api_limit
+    uris = get_tracks('tracks.json')
+    get_tracks_data(uris[range_start:range_end])

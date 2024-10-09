@@ -32,6 +32,7 @@ def get_lyrics(track_isrc):
         return {'track_isrc': track_isrc, 'lyrics_id': lyrics_id, 'lyrics_body': lyrics_body}
     else:
         print(f"Error: {response.status_code}")
+        return None
 
 def get_track_metadata(track_isrc):
     # Define the parameters for the API request
@@ -48,6 +49,7 @@ def get_track_metadata(track_isrc):
         return {'track_isrc': track_isrc, 'has_lyrics':track['has_lyrics'], 'instrumental':track['instrumental'], 'explicit':track['explicit'], 'genres': track['primary_genres']}
     else:
         print(f"Error: {response.status_code}")
+        return None
 
 if __name__ == '__main__':
     # Example usage
