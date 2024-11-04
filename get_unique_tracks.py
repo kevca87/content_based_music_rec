@@ -10,6 +10,7 @@ import json
 import re
 import collections
 import os
+import argparse
 
 total_playlists = 0
 total_tracks = 0
@@ -18,6 +19,7 @@ artists = set()
 albums = set()
 titles = set()
 ntitles = set()
+playlists = set()
 full_title_histogram = collections.Counter()
 title_histogram = collections.Counter()
 artist_histogram = collections.Counter()
@@ -27,7 +29,8 @@ quick = False
 max_files_for_quick_processing = 50
 
 
-def process_mpd(path):
+# This function read all the files of a directory and update all the global sets (more important tracks, albums and artists)
+def process_mpd(path, playlist_to_process):
     count = 0
     filenames = os.listdir(path)
     for filename in sorted(filenames):
@@ -39,17 +42,13 @@ def process_mpd(path):
             mpd_slice = json.loads(js)
             process_info(mpd_slice["info"])
             for playlist in mpd_slice["playlists"]:
+                if total_playlists == playlist_to_process:
+                    return
+                playlists.add(playlist['pid'])
                 process_playlist(playlist)
-                if total_playlists == 100:
-                    break
             count += 1
-
             if quick and count > max_files_for_quick_processing:
                 break
-    # print(len(tracks))
-    # show_summary()
-    with open('tracks.json', 'w') as outfile:
-        json.dump(list(tracks), outfile)
 
 
 def show_summary():
@@ -94,9 +93,6 @@ def process_playlist(playlist):
     global total_playlists, total_tracks
 
     total_playlists += 1
-    # print playlist['playlist_id'], playlist['name']
-    if total_playlists == 100:
-        return
 
     titles.add(playlist["name"])
     nname = normalize_name(playlist["name"])
@@ -120,10 +116,37 @@ def process_info(info):
         print("%-20s %s" % (k + ":", v))
     print()
 
+def write_output_file(output_file_path: str, output: dict) -> None:
+    with open(output_file_path, 'w') as outfile:
+        json.dump(output, outfile)
 
 if __name__ == "__main__":
-    quick = False
-    path = sys.argv[1]
-    if len(sys.argv) > 2 and sys.argv[2] == "--quick":
-        quick = True
-    process_mpd(path)
+    default_playlists_to_process = 1000
+    default_output_filename = f"./data/unique_tracks_{default_playlists_to_process}p.json"
+    default_mpd_path = "./data/sample/"
+
+    parser = argparse.ArgumentParser(description="Shows deep stats for the MPD")
+    parser.add_argument("-i", "--input", type=str, default=default_mpd_path, help="Path to the MPD data")
+    parser.add_argument("-q", "--quick", action="store_true", help="Enable quick processing mode")
+    parser.add_argument("-o", "--output", type=str, default=default_output_filename, help="Output file")
+    parser.add_argument("-p", "--playlists", type=int, default=default_playlists_to_process, help="Number of playlists to process")
+    args = parser.parse_args()
+
+    quick = args.quick
+    path = args.input
+    output_file_path = args.output
+    playlist_to_process = args.playlists
+
+    process_mpd(path, playlist_to_process)
+    tracks_list = list(tracks)
+    processed_playlists_pids = list(playlists)
+    assert len(playlists) == total_playlists
+    output = {
+        'numberOfUniqueTracks': len(tracks_list),
+        'numberOfProcessedPlaylists': len(playlists),
+        'uniqueTracks': tracks_list,
+        'processedPlaylists': processed_playlists_pids,
+    }
+    print('Number of unique tracks:', len(tracks_list))
+    print('Number of processed playlists:', len(playlists))
+    write_output_file(output_file_path, output)
