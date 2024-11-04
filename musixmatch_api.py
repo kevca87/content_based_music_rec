@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from exceptions import RequestLimitException
 
 # Load environment variables from .env file
 load_dotenv()
@@ -30,6 +31,8 @@ def get_lyrics(track_isrc):
         lyrics_body = lyrics['lyrics_body'][0:-54]
         lyrics_id = lyrics['lyrics_id']
         return {'track_isrc': track_isrc, 'lyrics_id': lyrics_id, 'lyrics_body': lyrics_body}
+    elif response.status_code == 402:
+        raise RequestLimitException(f"\nError: {response.status_code} - Daily limit of API requests reached")
     else:
         print(f"Error: {response.status_code}")
         return None

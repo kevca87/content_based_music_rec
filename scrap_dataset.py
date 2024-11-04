@@ -3,6 +3,7 @@ from musixmatch_api import get_lyrics, get_track_metadata
 import json
 from tqdm import tqdm
 from time import sleep
+from exceptions import RequestLimitException
 
 def read_json_file(file_path):
     with open(file_path, 'r') as file:
@@ -22,15 +23,16 @@ def save_json_file(file_path, data):
         json.dump(data, file)
     
 def get_tracks_data(uris):
-    isrcs = []
-    unable_to_get_isrcs = []
+    isrcs = {}
+    unable_to_get_isrc = []
+    unable_to_get_lyric = []
     tracks_metadata = []
     tracks_lyrics = []
     for uri in tqdm(uris):
         isrc = get_track_isrc(uri)
         try:
             if isrc != None:
-                isrcs.append(isrc)
+                isrcs[uri] = isrc
                 track_metadata = get_track_metadata(isrc)
                 if track_metadata != None and track_metadata['has_lyrics'] == 1:
                     tracks_metadata.append(track_metadata)
@@ -38,19 +40,21 @@ def get_tracks_data(uris):
                     if lyrics != None:
                         tracks_lyrics.append(lyrics)
                     else:
-                        unable_to_get_isrcs.append(uri)
+                        unable_to_get_lyric.append(uri)
             else:
-                unable_to_get_isrcs.append(uri)
-            sleep(1)
+                unable_to_get_isrc.append(uri)
+            sleep(0.5)
+        except RequestLimitException as e:
+            unable_to_get_lyric.append(uri)
+            print(e)
+            break
         except Exception as e:
-            save_json_file('isrcs.json', isrcs)
-            save_json_file('unable_to_get_isrcs.json', unable_to_get_isrcs)
-            save_json_file('tracks_metadata.json', tracks_metadata)
-            save_json_file('tracks_lyrics.json', tracks_lyrics)
-    save_json_file('isrcs.json', isrcs)
-    save_json_file('unable_to_get_isrcs.json', unable_to_get_isrcs)
-    save_json_file('tracks_metadata.json', tracks_metadata)
-    save_json_file('tracks_lyrics.json', tracks_lyrics)
+            print(e)
+        save_json_file('isrcs.json', isrcs)
+        save_json_file('unable_to_get_isrc.json', unable_to_get_isrc)
+        save_json_file('unable_to_get_lyric.json', unable_to_get_lyric)
+        save_json_file('tracks_metadata.json', tracks_metadata)
+        save_json_file('tracks_lyrics.json', tracks_lyrics)
     return isrcs
 
 # def get_lyrics_for_tracks(tracks):
@@ -62,8 +66,13 @@ def get_tracks_data(uris):
 
 if __name__ == '__main__':
     part = 1
-    musixmatch_api_limit = 1000
+    musixmatch_api_limit = 100
     range_start = (part - 1) * musixmatch_api_limit
     range_end = part * musixmatch_api_limit
     uris = get_tracks('tracks.json')
+    print('Total tracks:', len(uris))
     get_tracks_data(uris[range_start:range_end])
+
+
+# 100 playlist --> 5178 tracks
+# 1000 playlist --> 34443 tracks

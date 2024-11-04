@@ -40,6 +40,8 @@ def process_mpd(path):
             process_info(mpd_slice["info"])
             for playlist in mpd_slice["playlists"]:
                 process_playlist(playlist)
+                if total_playlists == 100:
+                    break
             count += 1
 
             if quick and count > max_files_for_quick_processing:
@@ -93,6 +95,8 @@ def process_playlist(playlist):
 
     total_playlists += 1
     # print playlist['playlist_id'], playlist['name']
+    if total_playlists == 100:
+        return
 
     titles.add(playlist["name"])
     nname = normalize_name(playlist["name"])
