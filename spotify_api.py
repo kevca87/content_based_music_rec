@@ -20,3 +20,6 @@ def get_track_isrc(uri: str) -> str:
     except spotipy.client.SpotifyException as e:
         print(e)
         return None
+    except Exception as e:
+        print(e)
+        return None
