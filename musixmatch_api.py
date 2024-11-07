@@ -26,7 +26,8 @@ def get_lyrics(track_isrc):
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        if data['message']['header']['status_code'] != 200:
+        status_code = data['message']['header']['status_code'] 
+        if status_code == 401 or status_code == 402:
             raise RequestLimitException(f"\nMusixmatch API Error: Status code {data['message']['header']['status_code']}")
         lyrics = data['message']['body']['lyrics']
         # remove '\n******* This Lyrics is NOT for Commercial use *******'
@@ -50,7 +51,8 @@ def get_track_metadata(track_isrc):
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        if data['message']['header']['status_code'] != 200:
+        status_code = data['message']['header']['status_code'] 
+        if status_code == 401 or status_code == 402:
             raise RequestLimitException(f"\nMusixmatch API Error: Status code {data['message']['header']['status_code']}")
         track = data['message']['body']['track']
         return {'track_isrc': track_isrc, 'has_lyrics':track['has_lyrics'], 'instrumental':track['instrumental'], 'explicit':track['explicit'], 'genres': track['primary_genres']}
