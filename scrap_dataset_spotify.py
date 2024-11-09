@@ -44,7 +44,7 @@ def get_tracks_data(uris, default_output_dir, section = -1):
             track_info = get_track_audio_analysis(uri)
             if track_info is not None:
                 break
-            sleep(600)
+            sleep(3600)
         sleep(5)
 
         name = uri.replace('spotify:track:', '')
@@ -53,7 +53,7 @@ def get_tracks_data(uris, default_output_dir, section = -1):
         if track_info == 404:
             omited += 1
             omited_uris.append(uri)
-            if os.exists(os.path.join(default_output_dir, file_name)):
+            if os.path.exists(os.path.join(default_output_dir, file_name)):
                 remove_file(os.path.join(default_output_dir, file_name))
         else:
             save_json_file(os.path.join(default_output_dir, file_name), track_info)
