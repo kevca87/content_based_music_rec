@@ -12,6 +12,15 @@
 
     By default the script needs an output directory created named `data_ignored/tracks_dataset`, you can specify the directory by using the flag `-o`
 
+## Dataset partition
+The process of train and challenge dataset partition could be found in [data_partition](./data_partition.ipynb) file
+
+## Embeddings creation
+The process of embedding creation could be found in the [content_embedding_creation](./content_embedding_creation.ipynb) file
+
+## SASRec
+The code to implement SASRec & $SASRec_C$ and the results of the experiments can be found in the [SASRec](./SASRec/) folder
+
 ## FM
 
 ### FastFM
