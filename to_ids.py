@@ -43,12 +43,13 @@ def process_mpd(path, playlist_to_process):
     return sequences
 
 def process_playlist(playlist):
-    global uri2idx, idx2uri
+    global uri2idx, idx2uri, idx2name
     playlist_sequence = []
     playlist_id = playlist['pid']
     for track in playlist["tracks"]:
         track_uri = track["track_uri"]
         track_id = uri2idx[track_uri]
+        idx2name[track_id] = track['track_name']
         playlist_sequence.append((playlist_id, track_id))
     return playlist_sequence
 
@@ -73,10 +74,13 @@ if __name__ == '__main__':
     track_uris = get_tracks(args.unique_tracks_file)
     uri2idx = {uri: idx+1 for idx, uri in enumerate(track_uris)}
     idx2uri = {idx+1: uri for idx, uri in enumerate(track_uris)}
+    idx2name = {idx+1: '' for idx, uri in enumerate(track_uris)}
+
     save_json_file(f'{args.output}/uri2idx.json', uri2idx)
     save_json_file(f'{args.output}/idx2uri.json', idx2uri)
 
     sequences = process_mpd('./data/sample/', playlist_to_process)
+    save_json_file(f'{args.output}/idx2name.json', idx2name)
     output_file = f'{args.output}/playlistid_itemid_{playlists_processed}p.txt'
     save_txt_file(output_file, sequences)
     print(f'Processed {playlists_processed} playlists and saved the sequences to {output_file}')
