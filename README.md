@@ -26,3 +26,13 @@ The code for the data procesing as well as the model implementation can be found
 
 The results for both DeepFM and FastFM can be found in [MetricasFM](./Metricas%20FM.ipynb)
 
+## Uso de CHatGPT
+https://chatgpt.com/share/67576291-7920-800e-8963-fea495cb8e51
+
+https://chatgpt.com/share/675762a8-6c64-800e-9846-7c8e65ed28af
+
+https://chatgpt.com/share/67576260-b018-8012-9a08-ed01f132f6ed
+
+https://chatgpt.com/share/675763c2-9ab4-8012-9766-69ab6c9df8c0
+
+https://chatgpt.com/share/675766e4-59ac-8005-b72c-f55392358850
