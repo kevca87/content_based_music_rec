@@ -23,3 +23,38 @@ def get_track_isrc(uri: str) -> str:
     except Exception as e:
         print(e)
         return None
+
+def get_track_audio_analysis(uri: str) -> dict:
+    try:
+        audio_analysis = sp.audio_analysis(uri)
+        return audio_analysis
+    except spotipy.client.SpotifyException as e:
+        if e.http_status == 404:
+            return 404
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
+
+def get_track_metadata(isrc: str) -> dict:
+    try:
+        metadata = sp.track(isrc)
+        return metadata
+    except spotipy.client.SpotifyException as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
+
+def get_track_features(uri: str | list) -> dict: 
+    try:
+        features = sp.audio_features(uri)
+        return features
+    except spotipy.client.SpotifyException as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
