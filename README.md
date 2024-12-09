@@ -10,4 +10,19 @@
     `s` is the start index of `unique_tracks` list
     `e` is the end index of `unique_tracks` list
 
-    By default the script needs an output directory created named `data_ignored/tracks_dataset`, you can specify the directory by using the flag `-o` 
+    By default the script needs an output directory created named `data_ignored/tracks_dataset`, you can specify the directory by using the flag `-o`
+
+## FM
+
+### FastFM
+
+The code to implement FastFM can be found in the [FastFM](./FastFM.ipynb) file
+
+### DeepFM
+
+The code for the data procesing as well as the model implementation can be found in the [DeepFM](./DeepFM/) folder.
+
+### Results
+
+The results for both DeepFM and FastFM can be found in [MetricasFM](./Metricas%20FM.ipynb)
+
