@@ -44,7 +44,7 @@ def get_tracks_data(uris, default_output_dir, section = -1):
             track_info = get_track_audio_analysis(uri)
             if track_info is not None:
                 break
-            sleep(3600)
+            sleep(1800)
         sleep(5)
 
         name = uri.replace('spotify:track:', '')

@@ -47,3 +47,14 @@ def get_track_metadata(isrc: str) -> dict:
     except Exception as e:
         print(e)
         return None
+
+def get_track_features(uri: str | list) -> dict: 
+    try:
+        features = sp.audio_features(uri)
+        return features
+    except spotipy.client.SpotifyException as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
